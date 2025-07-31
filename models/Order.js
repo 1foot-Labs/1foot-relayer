@@ -5,7 +5,7 @@ const orderSchema = new mongoose.Schema({
   takerAddress: String,
   makerAddress: { type: String, required: true },
   hashLock: { type: String, required: true },
-  status: { type: String, enum: ['created', 'in-progress', 'finished', 'expired'], default: 'created' },
+  status: { type: String, enum: ['order_created', 'htlc_initialised','htlc_funded','funds_claimed', 'expired'] },
   amountToGive: Number,
   ethHTLCAddress: String,
   btcHTLCAddress: String,
