@@ -89,7 +89,6 @@ exports.getStatus = async (req, res) => {
   }
 };
 
-
 // Claim funds using the secret (done by resolver)
 exports.claimFunds = async (req, res) => {
   try {
@@ -104,8 +103,10 @@ exports.claimFunds = async (req, res) => {
 
     // Check secret matches hashLock (on-chain HTLC should also verify this)
     const crypto = require('crypto');
-    const calculatedHash = '0x' + crypto.createHash('sha256').update(secret).digest('hex');
-    if (calculatedHash.toLowerCase() !== order.hashLock.toLowerCase()) {
+    const calculatedHash = crypto.createHash('sha256').update(secret).digest('hex');
+
+    // Compare with stored hashLock
+    if (calculatedHash !== order.hashLock) {
       return res.status(400).json({ error: 'Invalid secret' });
     }
 
