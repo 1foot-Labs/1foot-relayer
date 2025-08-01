@@ -3,12 +3,14 @@ const Order = require('../models/Order');
 // Create new order
 exports.createOrder = async (req, res) => {
   try {
-    const { type, makerAddress, hashLock, amountToGive, amountToReceive } = req.body;
+    const { type, makerEthAddress, pubKey, hash160, sha3, amountToGive, amountToReceive } = req.body;
 
     const order = new Order({
       type,
-      makerAddress,
-      hashLock,
+      makerEthAddress,
+      pubKey,
+      hash160,
+      sha3,
       amountToGive,
       amountToReceive,
       status: 'order_created'
