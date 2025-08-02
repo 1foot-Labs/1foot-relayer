@@ -3,14 +3,13 @@ const Order = require('../models/Order');
 // Create new order
 exports.createOrder = async (req, res) => {
   try {
-    const { type, makerEthAddress, pubKey, hash160, sha3, amountToGive, amountToReceive } = req.body;
+    const { type, makerEthAddress, pubKey, sha256, amountToGive, amountToReceive } = req.body;
 
     const order = new Order({
       type,
       makerEthAddress,
       pubKey,
-      hash160,
-      sha3,
+      sha256,
       amountToGive,
       amountToReceive,
       status: 'order_created'
@@ -45,7 +44,8 @@ exports.fulfillOrder = async (req, res) => {
     order.takerAddress = takerAddress;
     order.ethHTLCAddress = ethHTLCAddress;
     order.btcHTLCAddress = btcHTLCAddress;
-    order.status = 'htlc_initialised';
+    // order.status = 'htlc_initialised';
+    order.status = 'htlc_funded';
     await order.save();
     res.json(order);
   } catch (err) {
