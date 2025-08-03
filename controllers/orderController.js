@@ -1,5 +1,20 @@
 const Order = require('../models/Order');
 
+// Dutch auction parameters
+const AUCTION_DECAY_INTERVAL_MIN = 5; // every 5 minutes
+const DECAY_PERCENTAGE = 0.02; // 2% decrease per interval
+
+const Order = require('../models/Order'); // Adjust path as per your project structure
+
+// Dutch auction decay logic
+function applyDutchAuctionDecay(order, now = new Date()) {
+  const minutesElapsed = Math.floor((now - order.createdAt) / 60000);
+  const intervals = Math.floor(minutesElapsed / AUCTION_DECAY_INTERVAL_MIN);
+  const decayFactor = Math.pow(1 - DECAY_PERCENTAGE, intervals);
+  const decayedAmount = +(order.amountToReceive * decayFactor).toFixed(8);
+  return decayedAmount;
+}
+
 // Create new order
 exports.createOrder = async (req, res) => {
   try {
@@ -25,8 +40,18 @@ exports.createOrder = async (req, res) => {
 // View orders that are not finished or expired
 exports.viewActiveOrders = async (req, res) => {
   try {
-    const orders = await Order.find({ status: 'order_created'});
-    res.json(orders);
+    const orders = await Order.find({ status: 'order_created' });
+
+    const now = new Date();
+    const updatedOrders = orders.map(order => {
+      const decayedAmount = applyDutchAuctionDecay(order, now);
+      return {
+        ...order.toObject(),
+        amountToReceive: decayedAmount
+      };
+    });
+
+    res.json(updatedOrders);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -41,10 +66,12 @@ exports.fulfillOrder = async (req, res) => {
     if (!order) return res.status(404).json({ error: 'Order not found' });
     if (order.status !== 'order_created') return res.status(400).json({ error: 'Order is not available for HTLC init' });
 
+    // Apply Dutch auction decay
+    order.amountToReceive = applyDutchAuctionDecay(order);
+
     order.takerAddress = takerAddress;
     order.ethHTLCAddress = ethHTLCAddress;
     order.btcHTLCAddress = btcHTLCAddress;
-    // order.status = 'htlc_initialised';
     order.status = 'htlc_funded';
     await order.save();
     res.json(order);
