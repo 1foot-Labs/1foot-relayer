@@ -4,8 +4,6 @@ const Order = require('../models/Order');
 const AUCTION_DECAY_INTERVAL_MIN = 5; // every 5 minutes
 const DECAY_PERCENTAGE = 0.02; // 2% decrease per interval
 
-const Order = require('../models/Order'); // Adjust path as per your project structure
-
 // Dutch auction decay logic
 function applyDutchAuctionDecay(order, now = new Date()) {
   const minutesElapsed = Math.floor((now - order.createdAt) / 60000);
